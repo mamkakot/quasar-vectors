@@ -191,6 +191,9 @@ export default defineConfig((/* ctx */) => {
         win: {
           target: 'portable',
         },
+        publish: {
+          provider: 'github',
+        },
       },
     },
 
