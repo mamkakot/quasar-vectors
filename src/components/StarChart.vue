@@ -165,7 +165,7 @@ const voltageScale = ref(5)
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col md:flex-row justify-center align-center">
     <ArrowChart :annotations="annotations" :show-grid="showGrid" />
 
     <div>
