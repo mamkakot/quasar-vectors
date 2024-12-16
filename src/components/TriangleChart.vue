@@ -1,0 +1,173 @@
+<script setup>
+import VectorInput from './VectorInput.vue'
+import { computed, ref } from 'vue'
+import ArrowChart from 'components/ArrowChart.vue'
+
+const forceCoordinates = ref([
+  [-2.2, 4.1],
+  [0, 6.2],
+  [4.7, 2.5],
+])
+const voltageCoordinates = ref([
+  [0, 250],
+  [200, -110],
+  [-160, -110],
+])
+
+function getAnnotation(
+  name,
+  xMin,
+  yMin,
+  xMax,
+  yMax,
+  color,
+  isDashed = false,
+  showArrowHead = true,
+) {
+  return {
+    key: name,
+    value: {
+      type: 'line',
+      xMin: xMin,
+      xMax: xMax,
+      yMin: yMin,
+      yMax: yMax,
+      borderColor: color,
+      borderWidth: 2,
+      borderDash: isDashed ? [5, 15] : [],
+      label: {
+        content: name,
+        display: showLabels.value,
+      },
+      arrowHeads: {
+        end: {
+          display: showArrowHead,
+        },
+      },
+    },
+  }
+}
+
+const annotations = computed(() => {
+  const forceAnnotations = forceCoordinates.value
+    .map((item, index) =>
+      getAnnotation(
+        forceCoordinates.value.length - index - 1 === 0 ? `I_${index}0` : `I_${index}${index + 1}`,
+        0,
+        0,
+        item[0] / forceScale.value,
+        item[1] / forceScale.value,
+        'rgb(225, 42, 126)',
+      ),
+    )
+    .reduce((acc, item) => Object.assign(acc, { [item.key]: item.value }), {})
+
+  const voltageAnnotations = voltageCoordinates.value
+    .map((item, index) =>
+      getAnnotation(
+        voltageCoordinates.value.length - index - 1 === 0
+          ? `U_${index}0`
+          : `U_${index}${index + 1}`,
+        0,
+        0,
+        item[0] / voltageScale.value,
+        item[1] / voltageScale.value,
+        'rgb(63, 220, 220)',
+      ),
+    )
+    .reduce((acc, item) => Object.assign(acc, { [item.key]: item.value }), {})
+  const forceSumAnnotations = forceCoordinates.value
+    .map((item, index) =>
+      getAnnotation(
+        `I_${index}`,
+        (index < forceCoordinates.value.length - 1
+          ? forceCoordinates.value[index + 1][0]
+          : forceCoordinates.value[0][0]) / forceScale.value,
+        (index < forceCoordinates.value.length - 1
+          ? forceCoordinates.value[index + 1][1]
+          : forceCoordinates.value[0][1]) / forceScale.value,
+        item[0] / forceScale.value,
+        item[1] / forceScale.value,
+        'rgb(186, 220, 63)',
+      ),
+    )
+    .reduce((acc, item) => Object.assign(acc, { [item.key]: item.value }), {})
+
+  return { ...forceAnnotations, ...voltageAnnotations, ...forceSumAnnotations }
+})
+
+const showGrid = ref(true)
+const showLabels = ref(true)
+const forceScale = ref(0.12)
+const voltageScale = ref(5)
+</script>
+
+<template>
+  <div class="flex flex-col md:flex-row justify-center align-center">
+    <ArrowChart :annotations="annotations" :show-grid="showGrid" />
+    <div>
+      <p class="rounded-lg bg-orange-600 bg-opacity-50 p-2 m-4 text-center text-white text-xl">
+        Сила
+      </p>
+      <VectorInput
+        v-for="coord in forceCoordinates"
+        v-model:real-part="coord[1]"
+        v-model:imaginary-part="coord[0]"
+        :key="coord"
+      />
+      <p class="rounded-lg bg-orange-600 bg-opacity-50 p-2 m-4 text-center text-white text-xl">
+        Напряжение
+      </p>
+      <VectorInput
+        v-for="coord in voltageCoordinates"
+        v-model:real-part="coord[1]"
+        v-model:imaginary-part="coord[0]"
+        :key="coord"
+      />
+      <div class="m-4">
+        <input type="checkbox" class="mr-2" id="grid" name="grid" checked v-model="showGrid" />
+        <label for="grid">Сетка</label>
+      </div>
+      <div class="m-4">
+        <input
+          type="checkbox"
+          id="labels"
+          name="labels"
+          checked
+          v-model="showLabels"
+          class="mr-2"
+        />
+        <label for="labels">Надписи на векторах</label>
+      </div>
+      <div class="m-4">
+        <label for="force-scale">mI, А/мм</label>
+        <input
+          type="number"
+          step="0.1"
+          id="force-scale"
+          name="force-scale"
+          v-model="forceScale"
+          class="rounded-lg border-gray-300 border-2 px-2 ml-1"
+        />
+      </div>
+      <div class="m-4">
+        <label for="voltage-scale">mU, В/мм</label>
+        <input
+          type="number"
+          id="voltage-scale"
+          name="voltage-scale"
+          v-model="voltageScale"
+          class="rounded-lg border-gray-300 border-2 px-2 ml-1"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.main-page {
+  justify-content: space-between;
+  margin: 20px;
+}
+</style>
+/

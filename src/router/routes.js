@@ -1,18 +1,13 @@
-const routes = [
-  {
-    path: '/',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
-    ]
-  },
+import HomeView from 'components/StarChart.vue'
+import TriangleView from 'components/TriangleChart.vue'
 
-  // Always leave this as last one,
-  // but you can also remove it
+const routes = [
+  { path: '/', component: HomeView },
+  { path: '/triangle', component: TriangleView },
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue')
-  }
+    component: () => import('pages/ErrorNotFound.vue'),
+  },
 ]
 
 export default routes
